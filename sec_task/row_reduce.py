@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 
 # ==== CONFIG ====
-CSV_PATH = "../data.csv.zip"         
+CSV_PATH = "../../../data.csv.zip"         
 OUT_PATH = "stratified_data.parquet"
 CHUNKSIZE = 250_000
 STRATIFY_COLS = ["Label", "Traffic Type"]  
