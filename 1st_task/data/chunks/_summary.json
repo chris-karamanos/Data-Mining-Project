@@ -1,0 +1,53 @@
+{
+  "rows_written": 8656767,
+  "format": "parquet",
+  "num_parts": 9,
+  "label_counts": {
+    "Benign": 1301,
+    "Malicious": 8655466
+  },
+  "traffic_type_counts": {
+    "Audio": 190,
+    "Background": 32,
+    "Bruteforce": 35172,
+    "DoS": 7490929,
+    "Information Gathering": 1038363,
+    "Mirai": 91002,
+    "Text": 209,
+    "Video": 870
+  },
+  "traffic_subtype_counts": {
+    "Audio": 190,
+    "Background": 32,
+    "Bruteforce FTP": 3485,
+    "Bruteforce SSH": 3967,
+    "Bruteforce Telnet": 4913,
+    "Bruteforce HTTP": 628,
+    "Bruteforce DNS": 22179,
+    "DoS ICMP": 9,
+    "DoS UDP": 257994,
+    "DoS SYN": 856764,
+    "DoS FIN": 725600,
+    "DoS ACK": 936307,
+    "DoS PSH": 909507,
+    "DoS RST": 1072504,
+    "DoS URG": 906190,
+    "DoS ECN": 871150,
+    "DoS CWR": 872523,
+    "DoS HTTP": 82351,
+    "DoS MAC": 30,
+    "Information Gathering": 1038363,
+    "Mirai Scan Bruteforce": 8731,
+    "Mirai DDoS UDP": 71,
+    "Mirai DDoS ACK": 3779,
+    "Mirai DDoS SYN": 14210,
+    "Mirai DDoS GREIP": 49,
+    "Mirai DDoS GREETH": 43,
+    "Mirai DDoS HTTP": 8923,
+    "Mirai DDoS DNS": 55196,
+    "Text": 209,
+    "Video HTTP": 376,
+    "Video RTP": 349,
+    "Video UDP": 145
+  }
+}
