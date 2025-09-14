@@ -11,7 +11,7 @@ KEEP = [
     "Packet Length Mean","Packet Length Std",
     "Flow IAT Mean","Flow IAT Std","Flow IAT Max","Flow IAT Min",
     "Fwd IAT Mean","Bwd IAT Mean",
-    "Protocol","SYN Flag Count","ACK Flag Count","RST Flag Count",
+    "SYN Flag Count","ACK Flag Count","RST Flag Count",
     "PSH Flag Count","FIN Flag Count","Fwd PSH Flags","Bwd PSH Flags",
     "Label","Traffic Type","Traffic Subtype",
 ]
