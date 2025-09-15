@@ -1,0 +1,11 @@
+{
+  "accuracy": 0.93495,
+  "precision_macro": 0.5007413083272498,
+  "recall_macro": 0.8008284576019736,
+  "f1_macro": 0.48472160956176086,
+  "roc_auc": null,
+  "n_classes": 2,
+  "best_params": {
+    "clf__C": 0.1
+  }
+}
