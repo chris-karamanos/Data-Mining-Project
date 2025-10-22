@@ -1,5 +1,4 @@
 
-    # split_csv_v2.py
 import os, json
 from collections import Counter
 import pandas as pd
@@ -12,7 +11,7 @@ CHUNK = 1000000
 
 SUMMARY_PATH = os.path.join(OUT_DIR, "_summary.json")
 
-# If we've already split before, just print the summary and exit
+
 if os.path.isfile(SUMMARY_PATH):
     print('Parquet files existed')
     with open(SUMMARY_PATH, "r") as f:
@@ -31,7 +30,7 @@ def downcast(df: pd.DataFrame) -> pd.DataFrame:
     # mutate in-place to save RAM
     for c in df.select_dtypes(include=["int64"]).columns:
         df[c] = pd.to_numeric(df[c], downcast="integer")
-    # handle pandas nullable ints (capital I)
+    # handle pandas nullable ints 
     for c in df.select_dtypes(include=["Int64"]).columns:
         try:
             df[c] = df[c].astype("Int32")  # keeps NA support, smaller footprint
@@ -39,7 +38,7 @@ def downcast(df: pd.DataFrame) -> pd.DataFrame:
             pass
     for c in df.select_dtypes(include=["float64","Float64"]).columns:
         df[c] = df[c].astype("float32")
-        # Convert object columns to pandas Category (dictionary-encoded in Parquet)
+        # Convert object columns to pandas Category 
     for c in df.select_dtypes(include=["object"]).columns:
         df[c] = df[c].astype("category")
     return df

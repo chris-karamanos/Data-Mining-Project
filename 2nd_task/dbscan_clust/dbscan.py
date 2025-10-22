@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 import os, json, math, time
 from typing import List, Tuple
@@ -24,26 +23,20 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR    = os.path.join(SCRIPT_DIR, "data")
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# Tunables (env overrides)
+# Tunables 
 MIN_SAMPLES    = int(os.getenv("DBSCAN_MIN_SAMPLES", "64"))
-MAX_ROWS       = int(os.getenv("DBSCAN_MAX_ROWS", "100000"))   # ↓ default from 300k
+MAX_ROWS       = int(os.getenv("DBSCAN_MAX_ROWS", "100000"))   
 EPS_Q          = float(os.getenv("DBSCAN_EPS_Q", "0.95"))
-EPS_SAMPLE     = int(os.getenv("DBSCAN_EPS_SAMPLE", "20000"))  # ↓ default from 50k
-FEATURE_CAP    = int(os.getenv("DBSCAN_FEATURE_CAP", "40"))    # keep top-variance K features
-USE_PCA_K      = int(os.getenv("DBSCAN_PCA", "0"))             # 0 = off; else K dims
+EPS_SAMPLE     = int(os.getenv("DBSCAN_EPS_SAMPLE", "20000"))  
+FEATURE_CAP    = int(os.getenv("DBSCAN_FEATURE_CAP", "40"))    
+USE_PCA_K      = int(os.getenv("DBSCAN_PCA", "0"))             
 
 META_COLS_CANDIDATES = ["Label", "Traffic Type", "Traffic Subtype"]
 
 def default_input_path() -> str:
-    env = os.getenv("DBSCAN_IN_PATH")
-    if env and os.path.exists(env): return env
-    candidates = [
-        os.path.join(SCRIPT_DIR, "..", "row_sampl", "stratified.parquet"),
-        os.path.join(SCRIPT_DIR, "..", "..", "1st_task", "data", "reduced", "merged_reduced.parquet"),
-    ]
-    for p in candidates:
-        if os.path.exists(p): return p
-    return env or candidates[-1]
+    return os.path.abspath(
+        os.path.join(SCRIPT_DIR, "../../1st_task/data/reduced/merged_reduced.parquet")
+    )
 
 def _numeric_columns_from_schema(pf: "pq.ParquetFile") -> Tuple[List[str], List[str]]:
     schema = pf.schema_arrow
@@ -153,7 +146,7 @@ def main():
     if len(feature_cols) < 2:
         raise SystemExit(f"Need ≥2 numeric features; got: {feature_cols}")
 
-    # Cap features by variance (helps a lot with memory & runtime)
+    # Cap features by variance 
     if FEATURE_CAP and len(feature_cols) > FEATURE_CAP:
         var = df[feature_cols].var(axis=0, skipna=True)
         top = var.sort_values(ascending=False).head(FEATURE_CAP).index.tolist()
@@ -162,13 +155,13 @@ def main():
 
     X = df[feature_cols].to_numpy(dtype=np.float32, copy=False)
 
-    # Optional PCA for further dimensionality reduction
+    
     if USE_PCA_K and USE_PCA_K < X.shape[1]:
         from sklearn.decomposition import PCA
         X = PCA(n_components=USE_PCA_K, svd_solver="randomized", random_state=42).fit_transform(X).astype(np.float32, copy=False)
         print(f"[DBSCAN] PCA -> shape {X.shape}")
 
-    # Standardize (keep float32)
+    # Standardize 
     scaler = StandardScaler(with_mean=True, with_std=True)
     Xs = scaler.fit_transform(X).astype(np.float32, copy=False)
 

@@ -7,10 +7,10 @@ import pandas as pd
 import pyarrow.parquet as pq
 
 # ---- CONFIG ----
-PARQUET_PATH = "../../1st_task/data/reduced/merged_reduced.parquet"   # file.parquet
+PARQUET_PATH = "../../1st_task/data/reduced/merged_reduced.parquet"   
 STRATIFY_COLS = ["Label", "Traffic Type"] 
-TARGET_TOTAL  = 1731353               # your target rows
-BATCH_SIZE    = 500_000               # how many rows per streamed batch
+TARGET_TOTAL  = 1731353               
+BATCH_SIZE    = 500_000               
 
 # make per-row stratum keys 
 def row_key(df: pd.DataFrame, cols):
@@ -18,11 +18,11 @@ def row_key(df: pd.DataFrame, cols):
         return df[cols[0]].astype("category")
     return pd.MultiIndex.from_frame(df[cols].astype("category")).to_series(index=df.index)
 
-# Build a streaming dataset (works for single file or partitioned folder)
+# Build a streaming dataset 
 dataset = ds.dataset(PARQUET_PATH, format="parquet")
 
 
-# ---- PASS 1: COUNT PER STRATUM ----
+# PASS 1: COUNT PER STRATUM
 counts = Counter()
 total_rows = 0
 batch_count = 0
@@ -30,7 +30,7 @@ batch_count = 0
 # Scanner that only materializes the columns we need
 scanner = ds.Scanner.from_dataset(
     dataset,
-    columns=STRATIFY_COLS,   # only Label / Traffic Type
+    columns=STRATIFY_COLS,   
     batch_size=BATCH_SIZE
 )
 
@@ -67,7 +67,7 @@ for k_, c in counts.items():
 
 print("Quotas ready. Sum:", sum(quotas.values()))
 
-#---- PASS 2: COLLECT ----
+# PASS 2: COLLECT
 
 parts_dir = Path("tii_ssrc23_stratified_parts")
 parts_dir.mkdir(exist_ok=True)
@@ -77,7 +77,7 @@ part_i = 0
 rows_seen = 0
 rows_kept = 0
 
-# Full columns this time (we want to write real rows out)
+# Full columns this time 
 scanner2 = ds.Scanner.from_dataset(
     dataset,
     batch_size=BATCH_SIZE
@@ -108,7 +108,6 @@ for batch_idx, batch in enumerate(scanner2.to_batches(), start=1):
         kept.to_parquet(parts_dir / f"part_{part_i:05d}.parquet", index=False)
         part_i += 1
 
-    # ---- LOG MESSAGE ----
     print(f"[P2 Batch {batch_idx}] rows_seen={rows_seen:,} | rows_kept={rows_kept:,} | parts={part_i}")
 
     # Early exit if quotas are satisfied
@@ -130,7 +129,7 @@ sampled.to_parquet("stratified.parquet", index=False)
 print("Saved: stratified.parquet")
 print("Rows:", len(sampled))
 
-# ---- Sanity checks (distributions) ----
+# Sanity checks 
 def dist(series: pd.Series):
     s = series.astype("string") 
     return s.value_counts(normalize=True).sort_index()

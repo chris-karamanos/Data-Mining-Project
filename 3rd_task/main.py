@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-"""
-Ερώτημα 3 — Ταξινόμηση με SVM & MLP (Neural Networks)
-
-Datasets:
-  1) ../2nd_task/row_sampl/stratified.parquet
-  2) ../2nd_task/birch_clust/birch_representatives.parquet
-"""
-
 from __future__ import annotations
 import os, json, time, inspect
 from pathlib import Path
@@ -145,7 +136,7 @@ def collect_metrics(y_true: pd.Series, y_pred: np.ndarray, y_proba: np.ndarray |
     return {"accuracy": acc, "precision_macro": prec, "recall_macro": rec,
             "f1_macro": f1, "roc_auc": auc, "n_classes": int(pd.Series(y_true).nunique())}
 
-# -------------- Models ----------------
+#  Models 
 def train_eval_svm(X_train, y_train, X_test, y_test, out_dir: Path) -> Dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
     use_linear = (len(X_train) > 100_000) or (y_train.nunique() > 20)
@@ -243,7 +234,7 @@ def train_eval_mlp(X_train, y_train, X_test, y_test, out_dir: Path) -> Dict[str,
     save_confusion_matrix(cm, labels=sorted(y_test.unique()), path_csv=out_dir / "confusion_matrix.csv")
     return metrics
 
-# -------------- Orchestration ----------------
+#  Orchestration 
 def run_for_dataset(ds_key: str, path: str) -> None:
     print(f"\n=== Dataset: {ds_key} -> {path} ===")
     df = load_parquet_sample(path, MAX_ROWS)

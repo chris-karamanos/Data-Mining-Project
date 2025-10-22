@@ -11,7 +11,7 @@ from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import Birch
 
-# ----------------- config -----------------
+# config 
 IN_PATH = "../../1st_task/data/reduced/merged_reduced.parquet"
 OUT_CENTROIDS = "data/merged_reduced_birch_centroids.parquet"
 OUT_STATS     = "data/merged_reduced_birch_stats.csv"
@@ -21,16 +21,16 @@ BIRCH_THRESHOLD = 3.0
 BRANCHING = 100
 RANDOM_STATE = 42
 
-# ------------------------------------------
+
 Path(OUT_CENTROIDS).parent.mkdir(parents=True, exist_ok=True)
 Path(OUT_STATS).parent.mkdir(parents=True, exist_ok=True)
 
 def iter_batches(dataset, columns, batch_rows):
     scanner = dataset.scanner(columns=columns, batch_size=batch_rows, use_threads=True)
     for rb in scanner.to_reader():
-        yield rb.to_pandas()  # keep it simple; pandas handles Arrow types
+        yield rb.to_pandas()  
 
-# open dataset lazily & infer columns
+# open dataset 
 dataset = ds.dataset(IN_PATH, format="parquet")
 
 # small sample to detect numeric cols and optional Label
@@ -45,14 +45,14 @@ if len(num_cols) < 2:
     raise ValueError("Need at least 2 numeric columns for clustering.")
 print(f"Using {len(num_cols)} numeric columns.", flush=True)
 
-# ----------------- PASS A: fit scaler -----------------
+# PASS A: fit scaler 
 scaler = StandardScaler()
 for batch in tqdm(iter_batches(dataset, num_cols, CHUNK_ROWS), desc="Pass A: scaler"):
     X = batch[num_cols].astype("float32")
     X = X.fillna(X.median())
     scaler.partial_fit(X)
 
-# ----------------- PASS B: build BIRCH tree -----------------
+# PASS B: build BIRCH tree
 birch = Birch(
     threshold=BIRCH_THRESHOLD,
     branching_factor=BRANCHING,
@@ -66,8 +66,8 @@ for batch in tqdm(iter_batches(dataset, num_cols, CHUNK_ROWS), desc="Pass B: bir
     Xs = scaler.transform(X)
     birch.partial_fit(Xs)
 
-# ----------------- PASS C: stream, assign labels, accumulate sums -----------------
-# For centroids we need SUM(feature) and COUNT per cluster (in original scale).
+# PASS C: stream, assign labels, accumulate sums
+# For centroids we need SUM and COUNT per cluster
 sums = {}
 counts = defaultdict(int)
 label_counts = defaultdict(Counter) if label_col else None
@@ -93,12 +93,12 @@ for batch in tqdm(iter_batches(dataset, num_cols + ([label_col] if label_col els
         sums[cl] += sub_sum
         counts[cl] += len(idx)
 
-        # label mode (optional)
+        # label mode 
         if label_col:
             label_vals = batch.iloc[idx][label_col].to_numpy()
             label_counts[cl].update(label_vals)
 
-# ----------------- build centroids dataframe -----------------
+# build centroid dataframe
 clusters = sorted(counts.keys())
 centroid_mat = np.vstack([sums[cl] / counts[cl] for cl in clusters]).astype("float32")
 centroids_df = pd.DataFrame(centroid_mat, columns=num_cols)

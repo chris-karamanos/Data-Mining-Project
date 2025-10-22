@@ -4,7 +4,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import pandas as pd
 
-IN_PATTERN = "data/reduced/*reduced.parquet"   # <-- adjust if your files live elsewhere
+IN_PATTERN = "data/reduced/*reduced.parquet"  
 OUT_FILE   = Path("data/reduced/merged_reduced.parquet")
 OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
@@ -13,15 +13,13 @@ total = 0
 cols_order = None
 
 for i, path in enumerate(sorted(glob.glob(IN_PATTERN)), 1):
-    # Load this part
     df = pd.read_parquet(path, engine="pyarrow")
-    # On first file, lock column order/schema
     if writer is None:
         cols_order = df.columns.tolist()
         tbl = pa.Table.from_pandas(df, preserve_index=False)
         writer = pq.ParquetWriter(OUT_FILE.as_posix(), tbl.schema, compression="zstd")
     else:
-        # Ensure same column order (in case files differ)
+        # Ensure same column order
         df = df[cols_order]
         tbl = pa.Table.from_pandas(df, preserve_index=False)
 
@@ -32,4 +30,4 @@ for i, path in enumerate(sorted(glob.glob(IN_PATTERN)), 1):
 
 if writer:
     writer.close()
-print(f"✅ Done → {OUT_FILE}  (rows: {total:,}, cols: {len(cols_order or [])})")
+print(f"Done → {OUT_FILE}  (rows: {total:,}, cols: {len(cols_order or [])})")

@@ -4,8 +4,8 @@ paths = sorted(glob.glob("outputs/eda_chunks/*_describe.csv"))
 os.makedirs("outputs/eda_chunks", exist_ok=True)
 
 gmin, gmax = {}, {}
-sum_w, cnt_w = {}, {}          # for weighted mean: sum(n_i * mean_i), sum(n_i)
-sum_m2_within, sum_nm2 = {}, {}  # for pooled variance
+sum_w, cnt_w = {}, {}         
+sum_m2_within, sum_nm2 = {}, {}  
 
 for f in paths:
     d = pd.read_csv(f, index_col=0)
@@ -13,21 +13,18 @@ for f in paths:
     if isinstance(d.index, pd.Index) and d.index.dtype == "object":
         d.index = d.index.str.strip()
 
-    # --- mins ---
     if "min" in d.index:
         mins = pd.to_numeric(d.loc["min"], errors="coerce")
         for c, v in mins.items():
             if pd.notna(v):
                 gmin[c] = v if c not in gmin else min(gmin[c], v)
 
-    # --- maxs ---
     if "max" in d.index:
         maxs = pd.to_numeric(d.loc["max"], errors="coerce")
         for c, v in maxs.items():
             if pd.notna(v):
                 gmax[c] = v if c not in gmax else max(gmax[c], v)
 
-    # --- means + counts (+ stds for pooled variance) ---
     have = {"mean","count"} <= set(d.index)
     have_std = have and ("std" in d.index)
     if have:
@@ -48,9 +45,7 @@ for f in paths:
 
             if have_std and not pd.isna(row["s"]):
                 s = float(row["s"])
-                # within-chunk sum of squares: (n_i - 1) * s_i^2
                 sum_m2_within[c] = sum_m2_within.get(c, 0.0) + (n - 1.0) * (s ** 2)
-                # for between-chunk term: n_i * mean_i^2
                 sum_nm2[c] = sum_nm2.get(c, 0.0) + n * (m ** 2)
 
 # finalize weighted mean
@@ -62,7 +57,6 @@ for c in set(sum_m2_within) & set(sum_nm2) & set(cnt_w) & set(global_mean):
     N = cnt_w[c]
     if N and N > 1:
         mu = global_mean[c]
-        # between-chunk term = Σ n_i m_i^2 − N * mu^2
         between = sum_nm2[c] - N * (mu ** 2)
         var = (sum_m2_within[c] + between) / (N - 1.0)
         global_std[c] = math.sqrt(var) if var >= 0 else float("nan")
